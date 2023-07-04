@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+// eslint-disable-next-line import/no-cycle
+import { getFullGender } from '../utils/common';
 
 export type FilterType = 'All' | 'Male' | 'Female';
+export type FilterTypeShort = 'f' | 'm' | 'all';
 
 export const useGender = (onGenderChange?: (type: FilterType) => void) => {
   const [gender, setGender] = useState<FilterType>('All');
@@ -17,16 +20,10 @@ export const useGender = (onGenderChange?: (type: FilterType) => void) => {
   const searchParams = new URLSearchParams(location.search);
 
   useEffect(() => {
-    const sex = searchParams.get('sex') || '';
+    const sex = (searchParams.get('sex') ?? 'all') as FilterTypeShort;
 
-    const type: Record<string, any> = {
-      f: 'Female',
-      m: 'Male',
-    };
-
-    handleGender(type?.[sex] ?? 'All');
+    handleGender(getFullGender(sex));
   }, []);
-
 
   return {
     gender, handleGender,

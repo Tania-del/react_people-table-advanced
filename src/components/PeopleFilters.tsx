@@ -1,34 +1,107 @@
+import classNames from 'classnames';
+import { useState } from 'react';
 import {
-  NavLink, useLocation, useParams, useNavigate,
+  NavLink, useLocation, useParams, useNavigate, useSearchParams,
 } from 'react-router-dom';
-import { FilterType } from '../hooks/useGender';
+import { useFilter } from '../hooks/useFilter';
+import { FilterTypeShort } from '../hooks/useGender';
 // eslint-disable-next-line import/no-duplicates
 import { Person } from '../types';
+import { getFullGender } from '../utils/common';
 import { Loader } from './Loader';
+// eslint-disable-next-line import/no-cycle
 
 interface IPeopleFilters {
   isLoading: boolean;
   people: Person[];
-  gender: string | undefined;
-  handleGender: (type: FilterType) => void;
+  allPeople: Person[];
+  setPeople: (people: Person[]) => void;
+  setQueryError: (boolean: boolean) => void;
 }
 
 export const PeopleFilters: React.FC<IPeopleFilters> = ({
-  isLoading, gender, handleGender,
+  isLoading,
+  allPeople,
+  setPeople,
 }) => {
+  const [search] = useSearchParams();
   const { slug } = useParams();
+
   const location = useLocation();
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
+  const [value, setValue] = useState<string>('');
+  const {
+    getCenturies,
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    getFilteredPeople,
+  } = useFilter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchParams = new URLSearchParams(location.search);
     const query = e.target.value;
-    // searchParams.set()
 
-    searchParams.set('query', query);
+    if (query) {
+      searchParams.set('query', query);
+    } else {
+      searchParams.delete('query');
+    }
+
     const newSearch = searchParams.toString();
 
-    navigate({ search: newSearch });
+    navigate(`?${newSearch}`);
+
+    setValue(query);
+  };
+
+  const gender = getFullGender(search.get('sex') as FilterTypeShort);
+
+  const handleCenturiesQuery = (century: string) => {
+    const searchParams = new URLSearchParams(location.search);
+
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const centuries = getCenturies(century);
+
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    centuries.forEach((century, index) => {
+      if (index) {
+        searchParams.append('centuries', century);
+      } else {
+        searchParams.set('centuries', century);
+      }
+    });
+
+    if (!centuries.length) {
+      searchParams.delete('centuries');
+    }
+
+    const searchParamsString = searchParams.toString();
+
+    return `/people${slug ? `/${slug}` : ''}${
+      searchParamsString ? `?${searchParamsString}` : ''
+    }`;
+  };
+
+  const sortPeopleByCentury = (century: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const centuries = getCenturies(century);
+
+    const result = getFilteredPeople(allPeople, { centuries });
+
+    setPeople(result);
+  };
+
+  const handleSexQuery = (sex: string) => {
+    const searchParams = new URLSearchParams(location.search);
+
+    if (sex === 'm' || sex === 'f') {
+      searchParams.set('sex', sex);
+    } else {
+      searchParams.delete('sex');
+    }
+
+    return `/people${slug ? `/${slug}` : ''}${
+      searchParams ? `?${searchParams}` : ''
+    }`;
   };
 
   return (
@@ -40,15 +113,33 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
           <p className="panel-heading">Filters</p>
 
           <p className="panel-tabs" data-cy="SexFilter">
-            <NavLink to={`/people/${slug ?? ''}`} className={gender === 'All' ? 'is-active' : ''} onClick={() => handleGender('All')}>
+            <NavLink
+              to={handleSexQuery('all')}
+              className={gender === 'All' ? 'is-active' : ''}
+              onClick={() => setPeople(
+                getFilteredPeople(allPeople, { type: 'All' }),
+              )}
+            >
               All
             </NavLink>
 
-            <NavLink to={`/people/${slug ?? ''}?sex=m`} className={gender === 'Male' ? 'is-active' : ''} onClick={() => handleGender('Male')}>
+            <NavLink
+              to={handleSexQuery('m')}
+              className={gender === 'Male' ? 'is-active' : ''}
+              onClick={() => setPeople(
+                getFilteredPeople(allPeople, { type: 'Male' }),
+              )}
+            >
               Male
             </NavLink>
 
-            <NavLink to={`/people/${slug ?? ''}?sex=f`} className={gender === 'Female' ? 'is-active' : ''} onClick={() => handleGender('Female')}>
+            <NavLink
+              to={handleSexQuery('f')}
+              className={gender === 'Female' ? 'is-active' : ''}
+              onClick={() => setPeople(
+                getFilteredPeople(allPeople, { type: 'Female' }),
+              )}
+            >
               Female
             </NavLink>
           </p>
@@ -58,9 +149,9 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
               <input
                 data-cy="NameFilter"
                 type="search"
+                value={value}
                 className="input"
                 placeholder="Search"
-                // value={query}
                 onChange={handleInputChange}
               />
 
@@ -76,55 +167,80 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
               data-cy="CenturyFilter"
             >
               <div className="level-left">
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('16')}
                   data-cy="century"
-                  className="button mr-1"
-                  href="#/people?centuries=16"
+                  className={classNames('button mr-1', {
+                    'is-info': getCenturies().includes('16'),
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('16');
+                  }}
                 >
                   16
-                </a>
+                </NavLink>
 
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('17')}
                   data-cy="century"
-                  className="button mr-1 is-info"
-                  href="#/people?centuries=17"
+                  className={classNames('button mr-1', {
+                    'is-info': getCenturies().includes('17'),
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('17');
+                  }}
                 >
                   17
-                </a>
+                </NavLink>
 
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('18')}
                   data-cy="century"
-                  className="button mr-1 is-info"
-                  href="#/people?centuries=18"
+                  className={classNames('button mr-1', {
+                    'is-info': getCenturies().includes('18'),
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('18');
+                  }}
                 >
                   18
-                </a>
+                </NavLink>
 
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('19')}
                   data-cy="century"
-                  className="button mr-1 is-info"
-                  href="#/people?centuries=19"
+                  className={classNames('button mr-1', {
+                    'is-info': getCenturies().includes('19'),
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('19');
+                  }}
                 >
                   19
-                </a>
+                </NavLink>
 
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('20')}
                   data-cy="century"
-                  className="button mr-1"
-                  href="#/people?centuries=20"
+                  className={classNames('button mr-1', {
+                    'is-info': getCenturies().includes('20'),
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('20');
+                  }}
                 >
                   20
-                </a>
+                </NavLink>
               </div>
 
               <div className="level-right ml-4">
-                <a
+                <NavLink
+                  to={handleCenturiesQuery('all')}
                   data-cy="centuryALL"
                   className="button is-success is-outlined"
-                  href="#/people"
                 >
                   All
-                </a>
+                </NavLink>
               </div>
             </div>
           </div>

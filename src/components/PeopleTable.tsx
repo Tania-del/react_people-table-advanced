@@ -8,7 +8,6 @@ interface IPeopleTable {
 }
 export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-  // const [searchParam, setSearchParam] = useSearchParams();
 
   return (
     <table
@@ -81,6 +80,7 @@ export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
               >
                 <td>
                   <PersonLink
+                    key={slug}
                     onClick={() => setSelectedPerson(name)}
                     name={name}
                     slug={slug}
@@ -95,6 +95,7 @@ export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
                     people.some((person) => motherName === person.name) ? (
                       // eslint-disable-next-line @typescript-eslint/indent
                       <PersonLink
+                        key={slug}
                         onClick={() => setSelectedPerson(motherName)}
                         slug={slug}
                         sex="f"
@@ -115,6 +116,7 @@ export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
                       <PersonLink
                         onClick={() => setSelectedPerson(fatherName)}
                         slug={slug}
+                        key={slug}
                         sex="m"
                         name={fatherName}
                         // eslint-disable-next-line react/jsx-closing-bracket-location
