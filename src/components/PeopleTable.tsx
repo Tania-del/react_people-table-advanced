@@ -1,13 +1,66 @@
 /* eslint-disable no-nested-ternary */
 import { useState } from 'react';
+import {
+  NavLink,
+  useLocation,
+} from 'react-router-dom';
+import { SortFilterType, useFilter } from '../hooks/useFilter';
 import { Person } from '../types';
 import { PersonLink } from './PersonLink';
 
 interface IPeopleTable {
   people: Person[];
+  allPeople: Person[];
+  setPeople: (people: Person[]) => void;
 }
-export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
+export const PeopleTable: React.FC<IPeopleTable> = (
+  { people, allPeople, setPeople },
+) => {
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
+  const location = useLocation();
+  const { getSort, getOrder, getFilteredPeople } = useFilter();
+  // const {} = useFilter()
+
+  const sort = getSort();
+  const orderr = getOrder();
+
+  const handleSortQuery = (sortType: string) => {
+    const searchParams = new URLSearchParams(location.search);
+
+    // eslint-disable-next-line no-self-compare
+
+    if (sort === sortType && orderr === 'desc') {
+      searchParams.delete('sort');
+      searchParams.delete('order');
+    } else if (sort === sortType) {
+      searchParams.set('order', 'desc');
+    } else {
+      searchParams.set('sort', sortType);
+    }
+
+    const searchParamsString = searchParams.toString();
+
+    return `${searchParamsString ? `?${searchParamsString}` : ''}`;
+  };
+
+  const sortPeopleBySortType = (sortType: SortFilterType) => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    let order = false;
+
+    if (sort === sortType) {
+      order = true;
+    }
+
+    if (sort === sortType && orderr) {
+      order = false;
+      // eslint-disable-next-line no-param-reassign
+      sortType = '' as SortFilterType;
+    }
+
+    const result = getFilteredPeople(allPeople, { sortType, order });
+
+    setPeople(result);
+  };
 
   return (
     <table
@@ -19,44 +72,72 @@ export const PeopleTable: React.FC<IPeopleTable> = ({ people }) => {
           <th>
             <span className="is-flex is-flex-wrap-nowrap">
               Name
-              <a href="#/people?sort=name">
+              <NavLink
+                to={handleSortQuery('name')}
+                onClick={() => sortPeopleBySortType('name')}
+              >
                 <span className="icon">
-                  <i className="fas fa-sort" />
+                  <i
+                    className={`fas fa-sort ${sort === 'name' ? 'fa-sort-up' : ''} ${
+                      sort === 'name' && orderr ? 'fa-sort-down' : ''
+                    }`}
+                  />
                 </span>
-              </a>
+              </NavLink>
             </span>
           </th>
 
           <th>
             <span className="is-flex is-flex-wrap-nowrap">
               Sex
-              <a href="#/people?sort=sex">
+              <NavLink
+                to={handleSortQuery('sex')}
+                onClick={() => sortPeopleBySortType('sex')}
+              >
                 <span className="icon">
-                  <i className="fas fa-sort" />
+                  <i
+                    className={`fas fa-sort ${sort === 'sex' ? 'fa-sort-down' : ''} ${
+                      sort === 'sex' && orderr ? 'fa-sort-up' : ''
+                    }`}
+                  />
                 </span>
-              </a>
+              </NavLink>
             </span>
           </th>
 
           <th>
             <span className="is-flex is-flex-wrap-nowrap">
               Born
-              <a href="#/people?sort=born&amp;order=desc">
+              <NavLink
+                to={handleSortQuery('born')}
+                onClick={() => sortPeopleBySortType('born')}
+              >
                 <span className="icon">
-                  <i className="fas fa-sort-up" />
+                  <i
+                    className={`fas fa-sort ${sort === 'born' ? 'fa-sort-down' : ''} ${
+                      sort === 'born' && orderr ? 'fa-sort-up' : ''
+                    }`}
+                  />
                 </span>
-              </a>
+              </NavLink>
             </span>
           </th>
 
           <th>
             <span className="is-flex is-flex-wrap-nowrap">
               Died
-              <a href="#/people?sort=died">
+              <NavLink
+                to={handleSortQuery('died')}
+                onClick={() => sortPeopleBySortType('died')}
+              >
                 <span className="icon">
-                  <i className="fas fa-sort" />
+                  <i
+                    className={`fas fa-sort ${sort === 'died' ? 'fa-sort-down' : ''} ${
+                      sort === 'died' && orderr ? 'fa-sort-up' : ''
+                    }`}
+                  />
                 </span>
-              </a>
+              </NavLink>
             </span>
           </th>
 

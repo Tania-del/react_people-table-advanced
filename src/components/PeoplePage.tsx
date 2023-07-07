@@ -64,7 +64,14 @@ export const PeoplePage = () => {
                   <p data-cy="peopleLoadingError">Something went wrong</p>
                 )}
 
-                {people.length > 0 && <PeopleTable people={people} />}
+                {people?.length > 0
+                 && (
+                   <PeopleTable
+                     people={people}
+                     allPeople={allPeople}
+                     setPeople={setPeople}
+                   />
+                 )}
 
                 {!queryError && !errorWrong && people.length === 0 && (
                   <p data-cy="noPeopleMessage">

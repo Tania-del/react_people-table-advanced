@@ -1,7 +1,11 @@
 import classNames from 'classnames';
 import { useState } from 'react';
 import {
-  NavLink, useLocation, useParams, useNavigate, useSearchParams,
+  NavLink,
+  useLocation,
+  useParams,
+  useNavigate,
+  useSearchParams,
 } from 'react-router-dom';
 import { useFilter } from '../hooks/useFilter';
 import { FilterTypeShort } from '../hooks/useGender';
@@ -36,6 +40,8 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
     getFilteredPeople,
   } = useFilter();
 
+  const centuries = getCenturies();
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchParams = new URLSearchParams(location.search);
     const query = e.target.value;
@@ -51,6 +57,10 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
     navigate(`?${newSearch}`);
 
     setValue(query);
+
+    const result = getFilteredPeople(allPeople, { query });
+
+    setPeople(result);
   };
 
   const gender = getFullGender(search.get('sex') as FilterTypeShort);
@@ -237,7 +247,13 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
                 <NavLink
                   to={handleCenturiesQuery('all')}
                   data-cy="centuryALL"
-                  className="button is-success is-outlined"
+                  // className={`button is-success ${centuries === 'all' ? 'is-outlined' : ''} `}
+                  className={classNames('button is-success', {
+                    'is-outlined': centuries.length !== 0,
+                  })}
+                  onClick={() => {
+                    sortPeopleByCentury('all');
+                  }}
                 >
                   All
                 </NavLink>
@@ -246,12 +262,16 @@ export const PeopleFilters: React.FC<IPeopleFilters> = ({
           </div>
 
           <div className="panel-block">
-            <a
+            <NavLink
+              to={slug ? `/people/${slug}` : ''}
               className="button is-link is-outlined is-fullwidth"
-              href="#/people"
+              onClick={() => {
+                setPeople(allPeople);
+                setValue('');
+              }}
             >
               Reset all filters
-            </a>
+            </NavLink>
           </div>
         </>
       )}
