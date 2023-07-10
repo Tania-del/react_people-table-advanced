@@ -78,8 +78,8 @@ export const PeopleTable: React.FC<IPeopleTable> = (
               >
                 <span className="icon">
                   <i
-                    className={`fas fa-sort ${sort === 'name' ? 'fa-sort-up' : ''} ${
-                      sort === 'name' && orderr ? 'fa-sort-down' : ''
+                    className={`fas fa-sort ${sort === 'name' && !orderr ? 'fa-sort-up' : ''} ${
+                      sort === 'name' && orderr === 'desc' ? 'fa-sort-down' : ''
                     }`}
                   />
                 </span>
@@ -96,8 +96,8 @@ export const PeopleTable: React.FC<IPeopleTable> = (
               >
                 <span className="icon">
                   <i
-                    className={`fas fa-sort ${sort === 'sex' ? 'fa-sort-down' : ''} ${
-                      sort === 'sex' && orderr ? 'fa-sort-up' : ''
+                    className={`fas fa-sort ${sort === 'sex' && !orderr ? 'fa-sort-up' : ''} ${
+                      sort === 'sex' && orderr === 'desc' ? 'fa-sort-down' : ''
                     }`}
                   />
                 </span>
@@ -114,8 +114,9 @@ export const PeopleTable: React.FC<IPeopleTable> = (
               >
                 <span className="icon">
                   <i
-                    className={`fas fa-sort ${sort === 'born' ? 'fa-sort-down' : ''} ${
-                      sort === 'born' && orderr ? 'fa-sort-up' : ''
+                    className={`fas fa-sort ${sort === 'born' && !orderr ? 'fa-sort-up' : ''} ${
+                      (sort === 'born' && orderr === 'desc')
+                        ? 'fa-sort-down' : ''
                     }`}
                   />
                 </span>
@@ -132,8 +133,8 @@ export const PeopleTable: React.FC<IPeopleTable> = (
               >
                 <span className="icon">
                   <i
-                    className={`fas fa-sort ${sort === 'died' ? 'fa-sort-down' : ''} ${
-                      sort === 'died' && orderr ? 'fa-sort-up' : ''
+                    className={`fas fa-sort ${sort === 'died' && !orderr ? 'fa-sort-up' : ''} ${
+                      sort === 'died' && orderr === 'desc' ? 'fa-sort-down' : ''
                     }`}
                   />
                 </span>
